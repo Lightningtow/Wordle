@@ -3,4 +3,4 @@ project(wordle)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(wordle main.cpp Wordle.cpp Wordle.h)
+add_executable(wordle wordlegame.cpp Wordle.cpp Wordle.h)

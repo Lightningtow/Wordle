@@ -8,7 +8,7 @@
 //#include <string>
 #include <iostream>
 #include <algorithm>
-#include <windows.h>
+//#include <windows.h>
 
 using namespace std;
 
@@ -17,9 +17,10 @@ private:
 //    void displayEverything(const char[], const string[]);
     void displayEverything(const bool);
 //void displayBoard(const char[]);
-    bool validWord(const string&);
+    bool validWord(string&);
 //    string letterCheck(char[], const string&, char);
     void create_rgb();
+    void findTarget();
 //    void displayBoard(const char[]) const;
 
 

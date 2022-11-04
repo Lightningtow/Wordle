@@ -5,6 +5,8 @@
 #include <fstream>
 //#include <bits/stdc++.h>
 #include "Wordle.h"
+#include <algorithm>
+#include <random>
 
 using namespace std;
 
@@ -42,44 +44,16 @@ void Wordle::create_rgb() { //this automatically creates an rgb string for empty
 }
 
 
-////todo this should create and return a RYRRGR string, and remove red letters from board
-//string Wordle::letterCheck(char * board, const string& guessword, const char letter) {
-//    //todo as of now, all this does is remove chars from the board
-//    for(int i = 0; i < 5; i++) {
-//        if(letter == guessword[i]) return "not red";
-//    }
-//
-//
-////        else { // add to redlist
-//    for(int j = 0; j < 29; j++) {
-//        if (letter == board[j]) board[j] = ' ';
-//    }
-////        }
-//
-//    return "string";
-//}
-
-bool Wordle::validWord(const string& input) {
+bool Wordle::validWord(string& input) {
     //todo should eventually check if valid english word
     // would also make everything here unnecessary
     if(input.length() != 5) return false;
+    if(allvalid) return true;
+    transform(input.begin(), input.end(), input.begin(), ::tolower);
 
-//    string alphabet = "abcdefghijklmnopqrstuvwxyz";
-////    char alphabet[26] = {'a','b','c','d','e','f','g','h','i','j','k',
-////                         'l','m','n','o','p','q','r','s','t','u',
-////                         'v','w','x','y','z'};
-//
-//    for(int i = 0; i < 5; i++) {
-//        if(binary_search(alphabet.begin(), alphabet.end(), input[i])) {
-////            cout << input[i] << " valid" << endl;
-//            continue;
-//        }
-//        else return false;
-//    }
-//    return true;
-//    string filename = "target_words.txt";
     ifstream fileInput;
-    fileInput.open(R"(C:\Users\alexw\CLionProjects\wordle\accepted_answers.txt)", ios::in);
+//    fileInput.open(R"(C:\Users\alexw\CLionProjects\wordle\accepted_answers.txt)", ios::in);
+    fileInput.open("../accepted_answers.txt", ios::in);
 
     string line;
     int curLine;
@@ -99,7 +73,7 @@ bool Wordle::validWord(const string& input) {
         return false;
     }
     else cout << "Unable to open file." << endl;
-
+    exit(3);
 
 }
 
@@ -112,7 +86,7 @@ void Wordle::displayEverything(bool showboard) {
     cout << "==========================================" << endl;
     for(int i = 0; i < 6; i++) { // for all 6 words
 //        cout << i+1 << ") " << "\033[31m" << guesses[0][i] << "\033[0m" << endl;
-        cout << i+1 << ") ";
+        cout << " " << i+1 << ")  ";
         for(int j = 0; j < 5; j++) { // for all 5 letters
 //            cout << "i == " << i << ", j == " << j << endl;
 //            cout << "x";
@@ -139,8 +113,9 @@ void Wordle::displayEverything(bool showboard) {
 //    } cout << endl;
 
     if(showboard) {
+        cout << " " << endl;
         for(int i = 0; i < 28; i++) {
-            if (i == 21) cout << "  "; // provide indentation for last line
+            if (i == 21) cout << "   "; // provide indentation for last line
             if(greenlist.find(displayboard[i]) != string::npos) cout << "\033[32m" << displayboard[i] << "\033[0m";
             else if(yellowlist.find(displayboard[i]) != string::npos) cout << "\033[33m" << displayboard[i] << "\033[0m";
             else cout << displayboard[i];
@@ -152,13 +127,15 @@ void Wordle::displayEverything(bool showboard) {
 
 void Wordle::playWordle() {
 
+    findTarget();
     bool flag = false;
     while(!flag) {
         cout << ">> ";
         getline(cin, inputstr);
-        if(inputstr == "ALLVALID") { allvalid = true; cout << "No longer requires valid words"; }
-        else if(inputstr == "TELLME") cout << targetword << endl;
-        else if (validWord(inputstr)) {
+
+
+
+        if (validWord(inputstr)) {
             guesses[0][guesscount] = inputstr;
 //            guesses[1][guesscount] = create
             create_rgb();
@@ -192,16 +169,69 @@ void Wordle::playWordle() {
             displayEverything(true);
         }
 
+        else if(inputstr == "ALLVALID") { allvalid = !allvalid; cout << "allvalid toggled to " << boolalpha << allvalid << endl; }
+        else if(inputstr == "TELLME") cout << targetword << endl;
+        else if(inputstr == "FORCEQUIT") exit(-1);
 
 
-
-        else cout << "invalid";
+        else cout << "invalid" << endl;
         cout << endl;
 
 
 //        cout << (targetword == inputword);
     }
 
+}
+
+void Wordle::findTarget() {
+    ifstream fileInput;
+//    fileInput.open(R"(C:\Users\alexw\CLionProjects\wordle\accepted_answers.txt)", ios::in);
+    fileInput.open("../target_words.txt", ios::in);
+    string line;
+    int randline = 0;
+    int curLine = 0;
+
+    if(fileInput.is_open()) {
+        while (getline(fileInput, line)) { // I changed this, see below
+            curLine++;
+        }
+//        cout << curLine << endl;
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, curLine);
+        randline = dis(gen);
+
+//        cout << randline << endl;
+        fileInput.close();
+
+        fileInput.open("../target_words.txt", ios::in);
+
+        int linesRead = 0;
+        if(fileInput.is_open()) {
+            while (getline(fileInput, line)) { // I changed this, see below
+                linesRead++;
+                if(linesRead == randline) {
+//                    cout << line << endl;
+                    targetword = line;
+                    return;
+                }
+            }
+
+//            cout << randline << endl;
+            fileInput.close();
+        }
+        else {
+            cout << "Unable to open inner file." << endl;
+            exit(3);
+        }
+    }
+    else {
+        cout << "Unable to open outer file." << endl;
+        exit(3);
+    }
+
+    cout << "NO TARGET SET" << endl;
 }
 
 
